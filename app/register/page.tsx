@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import type { UserRole } from '@/types'
 
-export default function RegisterPage() {
+function RegisterForm() {
   const [role, setRole] = useState<UserRole>('employer')
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -16,11 +16,10 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
-  const isOAuth = searchParams.get('oauth') === '1'  // Google OAuth 新用戶
+  const isOAuth = searchParams.get('oauth') === '1'
 
   useEffect(() => {
     if (isOAuth) {
-      // 從 session 填入 email / name
       supabase.auth.getUser().then(({ data }) => {
         if (data.user) {
           setEmail(data.user.email ?? '')
@@ -38,7 +37,6 @@ export default function RegisterPage() {
     let userId: string | undefined
 
     if (isOAuth) {
-      // Google 用戶已登入，直接取 user id
       const { data: { user } } = await supabase.auth.getUser()
       userId = user?.id
     } else {
@@ -69,7 +67,6 @@ export default function RegisterPage() {
           <h1 className="text-2xl font-bold text-gray-900 mb-2">建立帳號</h1>
           <p className="text-sm text-gray-500 mb-6">選擇您的身份開始使用</p>
 
-          {/* 角色選擇 */}
           <div className="grid grid-cols-2 gap-3 mb-8">
             <button
               type="button"
@@ -169,5 +166,13 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-gray-400">載入中...</div>}>
+      <RegisterForm />
+    </Suspense>
   )
 }
