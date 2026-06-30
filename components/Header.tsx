@@ -1,23 +1,5 @@
-import { Button } from "@/components/ui/button"
-import { User } from "lucide-react"
-
+// 此檔案保留作備用，主要 Navbar 在 components/Navbar.tsx
+// layout.tsx 已使用 Navbar，此 Header 不掛載
 export function Header() {
-  return (
-    <header className="border-b">
-      <div className="container flex h-16 items-center justify-between px-4">
-        <div className="flex items-center space-x-2">
-          <h1 className="text-xl font-bold">Housekeeping Web</h1>
-        </div>
-        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-          <a href="/" className="hover:text-brand-600 transition-colors">首頁</a>
-          <a href="/services" className="hover:text-brand-600 transition-colors">服務項目</a>
-          <a href="/about" className="hover:text-brand-600 transition-colors">關於我們</a>
-          <a href="/contact" className="hover:text-brand-600 transition-colors">聯絡我們</a>
-        </nav>
-        <Button variant="ghost" size="icon">
-          <User className="h-5 w-5" />
-        </Button>
-      </div>
-    </header>
-  )
+  return null
 }
