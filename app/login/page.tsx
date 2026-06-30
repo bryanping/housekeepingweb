@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
+  const [googleFallbackUrl, setGoogleFallbackUrl] = useState<string | null>(null)
   const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -29,18 +30,25 @@ export default function LoginPage() {
   const handleGoogle = async () => {
     setGoogleLoading(true)
     setError('')
+    setGoogleFallbackUrl(null)
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          skipBrowserRedirect: true,
-        },
-      })
-      if (error) throw new Error(error.message)
-      if (!data?.url) throw new Error('Google 登入未啟用，請至 Supabase Dashboard → Authentication → Providers 開啟 Google')
-      window.location.assign(data.url)
+      // 用 server route 生成 OAuth URL，確保 PKCE verifier 存在 cookie
+      const res = await fetch('/api/auth/google')
+      const json = await res.json()
+      console.log('[Google OAuth] server response:', json)
+
+      if (!res.ok || json.error) {
+        throw new Error(json.error || 'Google 登入失敗')
+      }
+
+      const { url } = json
+      if (!url) throw new Error('未能取得 Google 登入網址')
+
+      console.log('[Google OAuth] navigating to:', url)
+      setGoogleFallbackUrl(url) // 備用：手動點擊
+      window.location.assign(url)
     } catch (err: unknown) {
+      console.error('[Google OAuth] error:', err)
       setError(err instanceof Error ? err.message : '登入失敗，請稍後再試')
       setGoogleLoading(false)
     }
@@ -67,6 +75,13 @@ export default function LoginPage() {
             </svg>
             {googleLoading ? '跳轉中...' : '使用 Google 登入'}
           </button>
+
+          {googleFallbackUrl && (
+            <p className="text-xs text-center text-gray-500 -mt-3 mb-3">
+              自動跳轉失敗？{' '}
+              <a href={googleFallbackUrl} className="text-brand-400 underline">點此繼續 Google 登入</a>
+            </p>
+          )}
 
           <div className="flex items-center gap-3 mb-5">
             <div className="flex-1 h-px bg-gray-200" />

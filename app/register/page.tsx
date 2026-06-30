@@ -46,14 +46,13 @@ function RegisterForm() {
     }
 
     if (userId) {
-      const { error: profileError } = await supabase.from('profiles').insert({
-        id: userId,
-        email,
-        full_name: fullName,
-        phone,
-        role,
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, email, fullName, phone, role }),
       })
-      if (profileError) { setError(profileError.message); setLoading(false); return }
+      const json = await res.json()
+      if (!res.ok) { setError(json.error || '建立帳號失敗'); setLoading(false); return }
     }
 
     setLoading(false)
