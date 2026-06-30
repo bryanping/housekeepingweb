@@ -1,4 +1,6 @@
-import { createBrowserClient, createServerClient, SupabaseClient } from '@supabase/supabase-js'
+// 修改内容: 從 @supabase/ssr 引入正確的 client factories
+import { createBrowserClient, createServerClient } from '@supabase/ssr'
+import { SupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 
 export const supabase = createBrowserClient(
@@ -12,10 +14,13 @@ export const createServerClientWithCookies = (): SupabaseClient => {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return cookies().get(name)?.value
+        getAll() {
+          return cookies().getAll()
+        },
+        setAll() {
+          // Server Components 無法設置 cookies，由 middleware 處理
         },
       },
     }
-  )
+  ) as unknown as SupabaseClient
 }

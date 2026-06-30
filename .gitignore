@@ -1,8 +1,30 @@
-.env.local
-.env
-.node_modules
-.next
-.env.production
-.env.development
+```
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# next.js
+.next/
+.out/
+.cache/
+
+# production
+/build
+
+# misc
 .DS_Store
-*.log
+*.pem
+
+# environment variables
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# vercel
+.vercel
+```
