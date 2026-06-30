@@ -29,17 +29,24 @@ export default function LoginPage() {
   const handleGoogle = async () => {
     setGoogleLoading(true)
     setError('')
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
+        skipBrowserRedirect: true, // 取得 url 後手動跳轉
       },
     })
     if (error) {
       setError(error.message)
       setGoogleLoading(false)
+      return
     }
-    // 成功時瀏覽器會跳轉，不需重置 loading
+    if (!data?.url) {
+      setError('Google 登入未啟用，請至 Supabase Dashboard → Authentication → Providers 開啟 Google')
+      setGoogleLoading(false)
+      return
+    }
+    window.location.href = data.url
   }
 
   return (
