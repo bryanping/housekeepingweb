@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand: #8b4513;
+  --brand-h: 25;
+  --brand-s: 76%;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: white;
+}
