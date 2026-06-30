@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import type { UserRole } from '@/types'
 
@@ -15,18 +15,41 @@ export default function RegisterPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const isOAuth = searchParams.get('oauth') === '1'  // Google OAuth 新用戶
+
+  useEffect(() => {
+    if (isOAuth) {
+      // 從 session 填入 email / name
+      supabase.auth.getUser().then(({ data }) => {
+        if (data.user) {
+          setEmail(data.user.email ?? '')
+          setFullName(data.user.user_metadata?.full_name ?? '')
+        }
+      })
+    }
+  }, [isOAuth])
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
-    const { data, error: signUpError } = await supabase.auth.signUp({ email, password })
-    if (signUpError) { setError(signUpError.message); setLoading(false); return }
+    let userId: string | undefined
 
-    if (data.user) {
+    if (isOAuth) {
+      // Google 用戶已登入，直接取 user id
+      const { data: { user } } = await supabase.auth.getUser()
+      userId = user?.id
+    } else {
+      const { data, error: signUpError } = await supabase.auth.signUp({ email, password })
+      if (signUpError) { setError(signUpError.message); setLoading(false); return }
+      userId = data.user?.id
+    }
+
+    if (userId) {
       const { error: profileError } = await supabase.from('profiles').insert({
-        id: data.user.id,
+        id: userId,
         email,
         full_name: fullName,
         phone,
@@ -88,17 +111,19 @@ export default function RegisterPage() {
                 placeholder="您的真實姓名"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent"
-                placeholder="your@email.com"
-              />
-            </div>
+            {!isOAuth && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent"
+                  placeholder="your@email.com"
+                />
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">手機號碼</label>
               <input
@@ -109,18 +134,20 @@ export default function RegisterPage() {
                 placeholder="0912-345-678"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">密碼</label>
-              <input
-                type="password"
-                required
-                minLength={6}
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent"
-                placeholder="至少 6 個字元"
-              />
-            </div>
+            {!isOAuth && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">密碼</label>
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent"
+                  placeholder="至少 6 個字元"
+                />
+              </div>
+            )}
 
             {error && (
               <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>
