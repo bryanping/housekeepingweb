@@ -1,7 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
 
 const services = [
   { id: 1, icon: '🧹', title: '家庭清潔', desc: '全室深度清潔，客廳、廚房、臥室一次搞定' },
@@ -19,6 +21,14 @@ const categories = [
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState('all')
+  const router = useRouter()
+
+  const handleStart = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { router.push('/login'); return }
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    router.push(profile?.role === 'employer' ? '/employer/post' : '/housekeeper/dashboard')
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -32,12 +42,12 @@ export default function Home() {
             配對雇主與家政人員，減少訊息差，取代傳統家政公司
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link
-              href="/register"
+            <button
+              onClick={handleStart}
               className="bg-brand-400 hover:bg-brand-500 text-white font-semibold py-3 px-8 rounded-xl transition-colors"
             >
               立即開始
-            </Link>
+            </button>
             <a
               href="#how"
               className="border-2 border-brand-400 text-brand-400 hover:bg-brand-50 font-semibold py-3 px-8 rounded-xl transition-colors"

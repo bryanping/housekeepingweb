@@ -28,12 +28,18 @@ export default function LoginPage() {
 
   const handleGoogle = async () => {
     setGoogleLoading(true)
-    await supabase.auth.signInWithOAuth({
+    setError('')
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
     })
+    if (error) {
+      setError(error.message)
+      setGoogleLoading(false)
+    }
+    // 成功時瀏覽器會跳轉，不需重置 loading
   }
 
   return (
