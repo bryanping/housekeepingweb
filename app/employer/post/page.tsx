@@ -11,6 +11,14 @@ const DEFAULT_TODOS = [
   '清潔浴室鏡面', '吸地毯', '清潔窗台', '清洗鍋具',
 ]
 
+// 修改内容：Field 移到組件外，避免每次 render 重新掛載 input 導致焦點丟失
+const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+    {children}
+  </div>
+)
+
 export default function PostOrderPage() {
   const [userId, setUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -73,13 +81,6 @@ export default function PostOrderPage() {
     setSuccess(true)
     setTimeout(() => router.push('/employer/dashboard'), 1500)
   }
-
-  const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      {children}
-    </div>
-  )
 
   const numInput = (key: keyof typeof form, min: number, max: number) => (
     <input
